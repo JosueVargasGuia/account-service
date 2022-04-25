@@ -1,4 +1,8 @@
 *.class
-/account-service/target/*
-/account-service/.settings/*
-account-service/.classpath
+/target/*
+/.settings/*
+/.classpath
+.factorypath
+.project
+.gitignore.bak
+.gitignore.bak
