@@ -47,16 +47,16 @@ public class AccountServiceImpl implements AccountService {
 	@Autowired
 	RestTemplate restTemplate;
 
-	@Value("${api.uri.customer-service}")
+	@Value("${api.customer-service.uri}")
 	private String customerService;
 
-	@Value("${api.uri.product-service}")
+	@Value("${api.product-service.uri}")
 	private String productService;
 
-	@Value("${api.uri.movement-account-service}")
+	@Value("${api.movement-account-service.uri}")
 	private String movementAccountService;
 
-	@Value("${api.uri.tableId-service}")
+	@Value("${api.tableId-service.uri}")
 	private String tableIdService;
 
 	public Flux<Account> findAll() {
