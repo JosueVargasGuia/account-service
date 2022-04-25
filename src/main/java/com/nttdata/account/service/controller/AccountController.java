@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,13 +34,13 @@ public class AccountController {
 	@Autowired
 	private AccountService service;
 	
-	@GetMapping
+	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public Flux<Account> findAll(){
 		return service.findAll();
 
 	}
 	
-	@GetMapping("/{id}")
+	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Account>> findById(@PathVariable("id") Long id){
 		return service.findById(id).map(_account -> ResponseEntity.ok().body(_account))
 				.onErrorResume(e -> {
@@ -48,7 +49,7 @@ public class AccountController {
 				}).defaultIfEmpty(ResponseEntity.noContent().build());
 	}
 	
-	@PostMapping
+	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Account>> saveAccount(@RequestBody Account account){
 		return service.save(account).map(_account -> ResponseEntity.ok().body(_account)).
 				onErrorResume(e -> {
@@ -57,7 +58,7 @@ public class AccountController {
 		});
 	}
 	
-	@PutMapping
+	@PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Account>> updateAccount(@RequestBody Account account){
 		Mono<Account> objAccount = service.findById(account.getIdAccount()).flatMap(_act -> {
 			log.info("Update: [new] " + account + " [Old]: " + _act);
@@ -73,7 +74,7 @@ public class AccountController {
 		}).defaultIfEmpty(ResponseEntity.noContent().build());
 	}
 	
-	@DeleteMapping("/{id}")
+	@DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable("id") Long id){
 		return service.findById(id).flatMap(account -> {
 			return service.delete(account.getIdAccount()).then(Mono.just(ResponseEntity.ok().build()));
@@ -83,7 +84,7 @@ public class AccountController {
 	//@Autowired 
 	//EurekaClient eurekaClient;
 	
-	@PostMapping("/registerAccount")
+	@PostMapping(value = "/registerAccount", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE )
 	public Mono<ResponseEntity<Map<String, Object>>> registerAccount(@RequestBody Account account) {
 		return service.registerAccount(account).
 				map(_object ->{ 
@@ -96,21 +97,19 @@ public class AccountController {
 	}
 	
 	
-	@GetMapping("/consultMovementsAccount/{idAccount}")
+	@GetMapping(value = "/consultMovementsAccount/{idAccount}")
 	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idAccount") Long idAccount) {
 		return service.consultMovementsAccount(idAccount);
 	}
 	
 	
-	@GetMapping("/findProduct/{id}")
+	@GetMapping(value = "/findProduct/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Product find(@PathVariable("id") Long id) {
 		return service.findProduct(id);
 	}
 	
-	@GetMapping("/findCustomer/{id}")
+	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Customer findCustomer(@PathVariable("id") Long id) {
 		return service.findCustomer(id);
 	}
-	
-
 }
