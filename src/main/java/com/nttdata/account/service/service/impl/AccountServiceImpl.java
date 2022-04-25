@@ -1,6 +1,5 @@
 package com.nttdata.account.service.service.impl;
 
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,28 +39,28 @@ public class AccountServiceImpl implements AccountService {
 	@Autowired
 	private AccountRepository repository;
 
-	 @Autowired
-	 CustomerFeignClient customerFeignClient;
-	 @Autowired
-	 ProductFeignClient productFeignClient;
+	@Autowired
+	CustomerFeignClient customerFeignClient;
+	@Autowired
+	ProductFeignClient productFeignClient;
 
 	@Autowired
 	RestTemplate restTemplate;
 
-	@Value("${api.customer-service.uri}")
-	private String customerService;// ="http://localhost:8087/customer";
+	@Value("${api.uri.customer-service}")
+	private String customerService;
 
-	@Value("${api.product-service.uri}")
-	private String productService;// ="http://localhost:8083/product";
+	@Value("${api.uri.product-service}")
+	private String productService;
 
-	@Value("${api.movement-account-service.uri}")
-	private String movementAccountService;// ="http://localhost:8088/movement-account";
-	@Value("${api.tableId-service.uri}")
-	String tableIdService;
+	@Value("${api.uri.movement-account-service}")
+	private String movementAccountService;
+
+	@Value("${api.uri.tableId-service}")
+	private String tableIdService;
 
 	public Flux<Account> findAll() {
 		return repository.findAll();
-
 	}
 
 	@Override
@@ -95,58 +94,59 @@ public class AccountServiceImpl implements AccountService {
 		Product product = findProduct(account.getIdProduct()); // obteniendo producto para luego comparar su tipo
 		Customer customer = findCustomer(account.getIdCustomer()); // obteniendo cliente para luego comparar su tipo
 
-		
-		if(product.getIdProducto()>=1 && customer.getId()>=1) {
+		if (product.getIdProducto() >= 1 && customer.getId() >= 1) {
 			log.info("Customer: " + customer.getFirstname());
 			log.info("Product: " + product.getDescriptionProducto());
-		if (customer.getTypeCustomer() == TypeCustomer.personal && product.getTypeProduct() == TypeProduct.pasivos) {
+			if (customer.getTypeCustomer() == TypeCustomer.personal
+					&& product.getTypeProduct() == TypeProduct.pasivos) {
 
-			Mono<Map<String, Object>> mono = this.findAll()
-					.filter(obj -> (obj.getIdCustomer() == account.getIdCustomer()
-							&& obj.getIdProduct() == account.getIdProduct()))
-					.collect(Collectors.counting()).map(e_value -> {
-						log.info("Cantidad:" + e_value);
-						if (e_value <= 0) {
-							if (product.getProductId() == ProductId.Ahorro) {
-								this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
-								hashMap.put("Account: ", "Cuenta de Ahorro registrada");
+				Mono<Map<String, Object>> mono = this.findAll()
+						.filter(obj -> (obj.getIdCustomer() == account.getIdCustomer()
+								&& obj.getIdProduct() == account.getIdProduct()))
+						.collect(Collectors.counting()).map(e_value -> {
+							log.info("Cantidad:" + e_value);
+							if (e_value <= 0) {
+								if (product.getProductId() == ProductId.Ahorro) {
+									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+									hashMap.put("Account: ", "Cuenta de Ahorro registrada");
+								}
+								if (product.getProductId() == ProductId.CuentaCorriente) {
+									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+									hashMap.put("Account: ", "Cuenta corriente registrada");
+								}
+								if (product.getProductId() == ProductId.PlazoFijo) {
+									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+									hashMap.put("Account: ", "Cuenta a Plazo fijo registrada");
+								}
+							} else {
+								hashMap.put("Account: ", "No se puede registrar una cuenta");
 							}
-							if (product.getProductId() == ProductId.CuentaCorriente) {
-								this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
-								hashMap.put("Account: ", "Cuenta corriente registrada");
-							}
-							if (product.getProductId() == ProductId.PlazoFijo) {
-								this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
-								hashMap.put("Account: ", "Cuenta a Plazo fijo registrada");
-							}
-						} else {
-							hashMap.put("Account: ", "No se puede registrar una cuenta");
-						}
-						return hashMap;
-					});
-			return mono;
+							return hashMap;
+						});
+				return mono;
 
-		} else { // si es del tipo empresarial permitir solo multiples cuentas corrientes
-			if (product.getTypeProduct() == TypeProduct.pasivos) {
-				if (product.getProductId() == ProductId.CuentaCorriente) {
-					this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
-					log.info("Cliente Empresarial -> Cuenta corriente registrada.");
-					hashMap.put("Account: ", "Cuenta corriente registrada.");
+			} else { // si es del tipo empresarial permitir solo multiples cuentas corrientes
+				if (product.getTypeProduct() == TypeProduct.pasivos) {
+					if (product.getProductId() == ProductId.CuentaCorriente) {
+						this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+						log.info("Cliente Empresarial -> Cuenta corriente registrada.");
+						hashMap.put("Account: ", "Cuenta corriente registrada.");
+					} else {
+						log.info("Cliente Empresarial -> No es posible abrir una cuenta de  "
+								+ product.getDescriptionProducto());
+						hashMap.put("Account: ",
+								"No es posible abrir una cuenta de " + product.getDescriptionProducto());
+					}
 				} else {
-					log.info("Cliente Empresarial -> No es posible abrir una cuenta de  "
-							+ product.getDescriptionProducto());
-					hashMap.put("Account: ", "No es posible abrir una cuenta de " + product.getDescriptionProducto());
+					log.info("Este servicio es para el registro de cuentas bancarias.");
+					hashMap.put("Account", "Este servicio es para el registro de cuentas bancarias.");
 				}
-			} else {
-				log.info("Este servicio es para el registro de cuentas bancarias.");
-				hashMap.put("Account", "Este servicio es para el registro de cuentas bancarias.");
 			}
-		}
-		}else {
-			if(product.getIdProducto()<=0) {
+		} else {
+			if (product.getIdProducto() <= 0) {
 				hashMap.put("Product", "El producto no existe.");
 			}
-			if(customer.getId()<=0) {
+			if (customer.getId() <= 0) {
 				hashMap.put("Customer", "El cliente no existe.");
 			}
 		}
@@ -157,17 +157,15 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public Product findProduct(Long id) {
 		log.info(productService + "/" + id);
-		/*ResponseEntity<Product> response = restTemplate.exchange(productService + "/" + id, HttpMethod.GET, null,
-				new ParameterizedTypeReference<Product>() {
-				});
-		if (response.getStatusCode() == HttpStatus.OK) {
-			return response.getBody();
-		} else {
-			return null;
-		}*/
-		Product product=productFeignClient.findById(id);
+		/*
+		 * ResponseEntity<Product> response = restTemplate.exchange(productService + "/"
+		 * + id, HttpMethod.GET, null, new ParameterizedTypeReference<Product>() { });
+		 * if (response.getStatusCode() == HttpStatus.OK) { return response.getBody(); }
+		 * else { return null; }
+		 */
+		Product product = productFeignClient.findById(id);
 		log.info("productFeignClient:" + product.toString());
-		return product ;
+		return product;
 	}
 
 	// busqueda de cliente por id
