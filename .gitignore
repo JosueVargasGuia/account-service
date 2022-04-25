@@ -1,0 +1,4 @@
+*.class
+/account-service/target/*
+/account-service/.settings/*
+account-service/.classpath
