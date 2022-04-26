@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.nttdata.account.service.FeignClient.CustomerFeignClient;
+import com.nttdata.account.service.FeignClient.MovementAccountFeignClient;
 import com.nttdata.account.service.FeignClient.ProductFeignClient;
+import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
@@ -43,21 +45,19 @@ public class AccountServiceImpl implements AccountService {
 	CustomerFeignClient customerFeignClient;
 	@Autowired
 	ProductFeignClient productFeignClient;
+	@Autowired
+	TableIdFeignClient tableIdFeignClient;
+	@Autowired
+	MovementAccountFeignClient movementAccountFeignClient;
 
 	@Autowired
 	RestTemplate restTemplate;
 
-	@Value("${api.customer-service.uri}")
-	private String customerService;
+	// @Value("${api.customer-service.uri}")
+	// private String customerService;
 
-	@Value("${api.product-service.uri}")
-	private String productService;
-
-	@Value("${api.movement-account-service.uri}")
-	private String movementAccountService;
-
-	@Value("${api.tableId-service.uri}")
-	private String tableIdService;
+	//@Value("${api.movement-account-service.uri}")
+	//private String movementAccountService;
 
 	public Flux<Account> findAll() {
 		return repository.findAll();
@@ -66,9 +66,11 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public Mono<Account> save(Account account) {
 		Long key = generateKey(Account.class.getSimpleName());
-		if (key >= 1) {
+		log.info("Key:"+key);
+		if (key >= 1) {			
 			account.setIdAccount(key);
-			// log.info("SAVE[product]:"+account.toString());
+		} else {
+			return Mono.error(new InterruptedException("Servicio no disponible:" + Account.class.getSimpleName()));			
 		}
 		return repository.insert(account);
 	}
@@ -118,9 +120,11 @@ public class AccountServiceImpl implements AccountService {
 									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
 									hashMap.put("Account: ", "Cuenta a Plazo fijo registrada");
 								}
+								//Falta realizar validacion cuando no cumple los if
 							} else {
 								hashMap.put("Account: ", "No se puede registrar una cuenta");
 							}
+							
 							return hashMap;
 						});
 				return mono;
@@ -156,7 +160,7 @@ public class AccountServiceImpl implements AccountService {
 	// busqueda de producto por su id
 	@Override
 	public Product findProduct(Long id) {
-		log.info(productService + "/" + id);
+		// log.info(productService + "/" + id);
 		/*
 		 * ResponseEntity<Product> response = restTemplate.exchange(productService + "/"
 		 * + id, HttpMethod.GET, null, new ParameterizedTypeReference<Product>() { });
@@ -183,8 +187,8 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public Flux<MovementAccount> consultMovementsAccount(Long idAccount) {
-		log.info(movementAccountService + "/" + idAccount);
+	public 	Flux<MovementAccount> consultMovementsAccount(Long idAccount) {
+		/*log.info(movementAccountService + "/" + idAccount);
 		// consulta de movimientos de la cuenta
 		ResponseEntity<List<MovementAccount>> response = restTemplate.exchange(movementAccountService, HttpMethod.GET,
 				null, new ParameterizedTypeReference<List<MovementAccount>>() {
@@ -195,20 +199,23 @@ public class AccountServiceImpl implements AccountService {
 			return Flux.fromIterable(list).filter(movementAccount -> movementAccount.getIdAccount() == idAccount);
 		} else {
 			return Flux.empty();
-		}
+		}*/
+		return movementAccountFeignClient.getOneMovementAccount(idAccount)
+				.filter(movementAccount -> movementAccount.getIdAccount() == idAccount);			
+				 
+		 
 	}
 
 	@Override
 	public Long generateKey(String nameTable) {
-		log.info(tableIdService + "/generateKey/" + nameTable);
-		ResponseEntity<Long> responseGet = restTemplate.exchange(tableIdService + "/generateKey/" + nameTable,
-				HttpMethod.GET, null, new ParameterizedTypeReference<Long>() {
-				});
-		if (responseGet.getStatusCode() == HttpStatus.OK) {
-			log.info("Body:" + responseGet.getBody());
-			return responseGet.getBody();
-		} else {
-			return Long.valueOf(0);
-		}
+		/*
+		 * log.info(tableIdService + "/generateKey/" + nameTable); ResponseEntity<Long>
+		 * responseGet = restTemplate.exchange(tableIdService + "/generateKey/" +
+		 * nameTable, HttpMethod.GET, null, new ParameterizedTypeReference<Long>() { });
+		 * if (responseGet.getStatusCode() == HttpStatus.OK) { log.info("Body:" +
+		 * responseGet.getBody()); return responseGet.getBody(); } else { return
+		 * Long.valueOf(0); }
+		 */
+		return tableIdFeignClient.generateKey(nameTable);
 	}
 }

@@ -1,6 +1,7 @@
 package com.nttdata.account.service.controller;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 //import com.netflix.discovery.EurekaClient;
 import com.nttdata.account.service.entity.Account;
@@ -51,9 +53,11 @@ public class AccountController {
 	@PostMapping
 	public Mono<ResponseEntity<Account>> saveAccount(@RequestBody Account account){
 		return service.save(account).map(_account -> ResponseEntity.ok().body(_account)).
+				
 				onErrorResume(e -> {
 			log.error("Error:" + e.getMessage());
 			return Mono.just(ResponseEntity.badRequest().build());
+			//return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,"BAD_REQUEST:"+e.getMessage()));
 		});
 	}
 	
@@ -98,7 +102,10 @@ public class AccountController {
 	
 	@GetMapping("/consultMovementsAccount/{idAccount}")
 	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idAccount") Long idAccount) {
-		return service.consultMovementsAccount(idAccount);
+		return service.consultMovementsAccount(idAccount).onErrorResume(e -> {
+			log.error("Error:" + e.getMessage());
+			return Mono.error(e);
+		});
 	}
 	
 	
