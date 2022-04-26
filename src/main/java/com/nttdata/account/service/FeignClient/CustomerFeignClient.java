@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.nttdata.account.service.FeignClient.FallBackImpl.CustomerFeignClientFallBack;
 import com.nttdata.account.service.model.Customer;
 
-@FeignClient(name="customerFeignClient",url="${api.customer-service.uri}",
+@FeignClient(name="${api.customer-service.uri}",
+ 
 fallback = CustomerFeignClientFallBack.class)
 public interface CustomerFeignClient {
 
