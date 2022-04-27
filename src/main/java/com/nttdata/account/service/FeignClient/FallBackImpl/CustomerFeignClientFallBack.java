@@ -17,7 +17,7 @@ public class CustomerFeignClientFallBack implements CustomerFeignClient {
 		// TODO Auto-generated method stub
 	    //https://arnoldgalovics.com/feign-fallback/
 		  Customer customer = new Customer(); 
-		  customer.setId(Long.valueOf(-1));
+		  customer.setIdCustomer(Long.valueOf(-1));
 		  log.info("CustomerFeignClientFallBack:"+customer.toString());
 		return customer;
 
