@@ -25,6 +25,8 @@ public abstract class Account {
 	private Long idCustomer;
 	private typeOfCurrency typeOfCurrency;
 	private String accountNumber;	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss") 
 	private Date creationDate;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
 	private Date dateModified;
 }

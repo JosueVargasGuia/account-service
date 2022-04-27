@@ -1,5 +1,6 @@
 package com.nttdata.account.service.service.impl;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,7 @@ public class AccountServiceImpl implements AccountService {
 		Long idBankAccount = generateKey(BankAccounts.class.getSimpleName());
 		if (idBankAccount >= 1) {
 			bankAccounts.setIdBankAccount(idBankAccount);
+			bankAccounts.setCreationDate(Calendar.getInstance().getTime());
 		} else {
 			return Mono.error(new InterruptedException("Servicio no disponible:" + BankAccounts.class.getSimpleName()));
 		}
