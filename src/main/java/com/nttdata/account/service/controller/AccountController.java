@@ -82,7 +82,7 @@ public class AccountController {
 	@DeleteMapping(value = "/{idBankAccount}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable("idBankAccount") Long idBankAccount){
 		return service.findById(idBankAccount).flatMap(account -> {
-			return service.delete(account.getIdAccount()).then(Mono.just(ResponseEntity.ok().build()));
+			return service.delete(account.getIdBankAccount()).then(Mono.just(ResponseEntity.ok().build()));
 		});
 	}
  
