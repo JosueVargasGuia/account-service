@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 //import com.netflix.discovery.EurekaClient;
 import com.nttdata.account.service.entity.Account;
+import com.nttdata.account.service.entity.BankAccounts;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -37,14 +38,14 @@ public class AccountController {
 	private AccountService service;
 	
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public Flux<Account> findAll(){
+	public Flux<BankAccounts> findAll(){
 		return service.findAll();
 
 	}
 	
-	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<ResponseEntity<Account>> findById(@PathVariable("id") Long id){
-		return service.findById(id).map(_account -> ResponseEntity.ok().body(_account))
+	@GetMapping(value = "/{idBankAccount}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<ResponseEntity<BankAccounts>> findById(@PathVariable("idBankAccount") Long idBankAccount){
+		return service.findById(idBankAccount).map(_account -> ResponseEntity.ok().body(_account))
 				.onErrorResume(e -> {
 					log.error("Error: " + e.getMessage());
 					return Mono.just(ResponseEntity.badRequest().build());
@@ -52,8 +53,8 @@ public class AccountController {
 	}
 	
 	@PostMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<ResponseEntity<Account>> saveAccount(@RequestBody Account account){
-		return service.save(account).map(_account -> ResponseEntity.ok().body(_account)).
+	public Mono<ResponseEntity<BankAccounts>> saveAccount(@RequestBody BankAccounts bankAccounts){
+		return service.save(bankAccounts).map(_account -> ResponseEntity.ok().body(_account)).
 				
 				onErrorResume(e -> {
 			log.error("Error:" + e.getMessage());
@@ -63,10 +64,10 @@ public class AccountController {
 	}
 	
 	@PutMapping(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<ResponseEntity<Account>> updateAccount(@RequestBody Account account){
-		Mono<Account> objAccount = service.findById(account.getIdAccount()).flatMap(_act -> {
-			log.info("Update: [new] " + account + " [Old]: " + _act);
-			return service.update(account);
+	public Mono<ResponseEntity<Account>> updateAccount(@RequestBody BankAccounts bankAccounts){
+		Mono<Account> objAccount = service.findById(bankAccounts.getIdAccount()).flatMap(_act -> {
+			log.info("Update: [new] " + bankAccounts + " [Old]: " + _act);
+			return service.update(bankAccounts);
 		});
 		//objAccount.subscribe();
 		return objAccount.map(_account -> {
@@ -78,9 +79,9 @@ public class AccountController {
 		}).defaultIfEmpty(ResponseEntity.noContent().build());
 	}
 	
-	@DeleteMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable("id") Long id){
-		return service.findById(id).flatMap(account -> {
+	@DeleteMapping(value = "/{idBankAccount}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable("idBankAccount") Long idBankAccount){
+		return service.findById(idBankAccount).flatMap(account -> {
 			return service.delete(account.getIdAccount()).then(Mono.just(ResponseEntity.ok().build()));
 		});
 	}
@@ -89,8 +90,8 @@ public class AccountController {
 	//EurekaClient eurekaClient;
 	
 	@PostMapping(value = "/registerAccount", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE )
-	public Mono<ResponseEntity<Map<String, Object>>> registerAccount(@RequestBody Account account) {
-		return service.registerAccount(account).
+	public Mono<ResponseEntity<Map<String, Object>>> registerAccount(@RequestBody BankAccounts bankAccounts) {
+		return service.registerAccount(bankAccounts).
 				map(_object ->{ 
 					//_object.put("IntanceName", eurekaClient.getApplicationInfoManager().getInfo().getInstanceId());
 				return ResponseEntity.ok().body(_object);})
@@ -110,7 +111,7 @@ public class AccountController {
 	}
 	
 	
-	@GetMapping(value = "/findProduct/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	/*@GetMapping(value = "/findProduct/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Product find(@PathVariable("id") Long id) {
 		return service.findProduct(id);
 	}
@@ -118,5 +119,5 @@ public class AccountController {
 	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Customer findCustomer(@PathVariable("id") Long id) {
 		return service.findCustomer(id);
-	}
+	}*/
 }

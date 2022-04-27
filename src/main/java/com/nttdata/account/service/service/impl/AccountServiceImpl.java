@@ -1,5 +1,6 @@
 package com.nttdata.account.service.service.impl;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import com.nttdata.account.service.FeignClient.MovementAccountFeignClient;
 import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
+import com.nttdata.account.service.entity.BankAccounts;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -56,83 +58,92 @@ public class AccountServiceImpl implements AccountService {
 	// @Value("${api.customer-service.uri}")
 	// private String customerService;
 
-	//@Value("${api.movement-account-service.uri}")
-	//private String movementAccountService;
+	// @Value("${api.movement-account-service.uri}")
+	// private String movementAccountService;
 
-	public Flux<Account> findAll() {
+	public Flux<BankAccounts> findAll() {
 		return repository.findAll();
 	}
 
 	@Override
-	public Mono<Account> save(Account account) {
-		Long key = generateKey(Account.class.getSimpleName());
-		log.info("Key:"+key);
-		if (key >= 1) {			
-			account.setIdAccount(key);
+	public Mono<BankAccounts> save(BankAccounts bankAccounts) {
+		Long idAccount = generateKey(Account.class.getSimpleName());
+		log.info("Key:" + idAccount);
+		if (idAccount >= 1) {
+			bankAccounts.setIdAccount(idAccount);
 		} else {
-			return Mono.error(new InterruptedException("Servicio no disponible:" + Account.class.getSimpleName()));			
+			return Mono.error(new InterruptedException("Servicio no disponible:" + Account.class.getSimpleName()));
 		}
-		return repository.insert(account);
+		Long idBankAccount = generateKey(BankAccounts.class.getSimpleName());
+		if (idBankAccount >= 1) {
+			bankAccounts.setIdBankAccount(idBankAccount);
+			bankAccounts.setCreationDate(Calendar.getInstance().getTime());
+		} else {
+			return Mono.error(new InterruptedException("Servicio no disponible:" + BankAccounts.class.getSimpleName()));
+		}
+		
+		return repository.insert(bankAccounts);
 	}
 
 	@Override
-	public Mono<Account> update(Account account) {
-		return repository.save(account);
+	public Mono<BankAccounts> update(BankAccounts bankAccounts) {
+		return repository.save(bankAccounts);
 	}
 
 	@Override
-	public Mono<Account> findById(Long id) {
-		return repository.findById(id);
+	public Mono<BankAccounts> findById(Long idBankAccount) {
+		return repository.findById(idBankAccount);
 	}
 
 	@Override
-	public Mono<Void> delete(Long id) {
-		return repository.deleteById(id);
+	public Mono<Void> delete(Long idBankAccount) {
+		return repository.deleteById(idBankAccount);
 	}
 
 	@Override
-	public Mono<Map<String, Object>> registerAccount(Account account) {
+	public Mono<Map<String, Object>> registerAccount(BankAccounts bankAccounts) {
 		Map<String, Object> hashMap = new HashMap<String, Object>();
-		Product product = findProduct(account.getIdProduct()); // obteniendo producto para luego comparar su tipo
-		Customer customer = findCustomer(account.getIdCustomer()); // obteniendo cliente para luego comparar su tipo
+		Product product = findProduct(bankAccounts.getIdProduct()); // obteniendo producto para luego comparar su tipo
+		Customer customer = findCustomer(bankAccounts.getIdCustomer()); // obteniendo cliente para luego comparar su
+																		// tipo
 
-		if (product.getIdProducto() >= 1 && customer.getId() >= 1) {
+		if (product.getIdProducto() >= 1 && customer.getIdCustomer() >= 1) {
 			log.info("Customer: " + customer.getFirstname());
 			log.info("Product: " + product.getDescriptionProducto());
 			if (customer.getTypeCustomer() == TypeCustomer.personal
 					&& product.getTypeProduct() == TypeProduct.pasivos) {
 
 				Mono<Map<String, Object>> mono = this.findAll()
-						.filter(obj -> (obj.getIdCustomer() == account.getIdCustomer()
-								&& obj.getIdProduct() == account.getIdProduct()))
+						.filter(obj -> (obj.getIdCustomer() == bankAccounts.getIdCustomer()
+								&& obj.getIdProduct() == bankAccounts.getIdProduct()))
 						.collect(Collectors.counting()).map(e_value -> {
 							log.info("Cantidad:" + e_value);
 							if (e_value <= 0) {
-								if (product.getProductId() == ProductId.Ahorro) {
-									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+								if (product.getProductId() == ProductId.Savings) {
+									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
 									hashMap.put("Account: ", "Cuenta de Ahorro registrada");
-								}
-								if (product.getProductId() == ProductId.CuentaCorriente) {
-									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+								} else if (product.getProductId() == ProductId.CurrentAccount) {
+									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
 									hashMap.put("Account: ", "Cuenta corriente registrada");
-								}
-								if (product.getProductId() == ProductId.PlazoFijo) {
-									this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+								} else if (product.getProductId() == ProductId.FixedTerm) {
+									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
 									hashMap.put("Account: ", "Cuenta a Plazo fijo registrada");
+								} else {
+									hashMap.put("Account: ", "No se puede registrar una cuenta");
 								}
-								//Falta realizar validacion cuando no cumple los if
+								// Falta realizar validacion cuando no cumple los if
 							} else {
 								hashMap.put("Account: ", "No se puede registrar una cuenta");
 							}
-							
+
 							return hashMap;
 						});
 				return mono;
 
 			} else { // si es del tipo empresarial permitir solo multiples cuentas corrientes
 				if (product.getTypeProduct() == TypeProduct.pasivos) {
-					if (product.getProductId() == ProductId.CuentaCorriente) {
-						this.save(account).subscribe(e -> log.info("Message:" + e.toString()));
+					if (product.getProductId() == ProductId.CurrentAccount) {
+						this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
 						log.info("Cliente Empresarial -> Cuenta corriente registrada.");
 						hashMap.put("Account: ", "Cuenta corriente registrada.");
 					} else {
@@ -150,7 +161,7 @@ public class AccountServiceImpl implements AccountService {
 			if (product.getIdProducto() <= 0) {
 				hashMap.put("Product", "El producto no existe.");
 			}
-			if (customer.getId() <= 0) {
+			if (customer.getIdCustomer() <= 0) {
 				hashMap.put("Customer", "El cliente no existe.");
 			}
 		}
@@ -187,23 +198,20 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-	public 	Flux<MovementAccount> consultMovementsAccount(Long idAccount) {
-		/*log.info(movementAccountService + "/" + idAccount);
-		// consulta de movimientos de la cuenta
-		ResponseEntity<List<MovementAccount>> response = restTemplate.exchange(movementAccountService, HttpMethod.GET,
-				null, new ParameterizedTypeReference<List<MovementAccount>>() {
-				});
-		List<MovementAccount> list;
-		if (response.getStatusCode() == HttpStatus.OK) {
-			list = response.getBody();
-			return Flux.fromIterable(list).filter(movementAccount -> movementAccount.getIdAccount() == idAccount);
-		} else {
-			return Flux.empty();
-		}*/
-		return movementAccountFeignClient.getOneMovementAccount(idAccount)
-				.filter(movementAccount -> movementAccount.getIdAccount() == idAccount);			
-				 
-		 
+	public Flux<MovementAccount> consultMovementsAccount(Long idBankAccount) {
+		/*
+		 * log.info(movementAccountService + "/" + idAccount); // consulta de
+		 * movimientos de la cuenta ResponseEntity<List<MovementAccount>> response =
+		 * restTemplate.exchange(movementAccountService, HttpMethod.GET, null, new
+		 * ParameterizedTypeReference<List<MovementAccount>>() { });
+		 * List<MovementAccount> list; if (response.getStatusCode() == HttpStatus.OK) {
+		 * list = response.getBody(); return
+		 * Flux.fromIterable(list).filter(movementAccount ->
+		 * movementAccount.getIdAccount() == idAccount); } else { return Flux.empty(); }
+		 */
+		return movementAccountFeignClient.getOneMovementAccount(idBankAccount)
+				.filter(movementAccount -> movementAccount.getIdBankAccount() == idBankAccount);
+
 	}
 
 	@Override
