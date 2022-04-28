@@ -82,7 +82,7 @@ public class AccountController {
 	@DeleteMapping(value = "/{idBankAccount}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public Mono<ResponseEntity<Void>> deleteAccount(@PathVariable("idBankAccount") Long idBankAccount){
 		return service.findById(idBankAccount).flatMap(account -> {
-			return service.delete(account.getIdAccount()).then(Mono.just(ResponseEntity.ok().build()));
+			return service.delete(account.getIdBankAccount()).then(Mono.just(ResponseEntity.ok().build()));
 		});
 	}
  
@@ -102,9 +102,9 @@ public class AccountController {
 	}
 	
 	
-	@GetMapping(value = "/consultMovementsAccount/{idAccount}")
-	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idAccount") Long idAccount) {
-		return service.consultMovementsAccount(idAccount).onErrorResume(e -> {
+	@GetMapping(value = "/consultMovementsAccount/{idBankAccount}")
+	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idBankAccount") Long idBankAccount) {
+		return service.consultMovementsAccount(idBankAccount).onErrorResume(e -> {
 			log.error("Error:" + e.getMessage());
 			return Mono.error(e);
 		});
