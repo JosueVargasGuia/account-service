@@ -107,7 +107,7 @@ public class AccountServiceImpl implements AccountService {
 		Customer customer = findCustomer(bankAccounts.getIdCustomer()); // obteniendo cliente para luego comparar su
 																		// tipo
 
-		if (product.getIdProducto() >= 1 && customer.getIdCustomer() >= 1) {
+		if (product!=null && customer!=null) {
 			log.info("Customer: " + customer.getFirstname());
 			log.info("Product: " + product.getDescriptionProducto());
 			if (customer.getTypeCustomer() == TypeCustomer.personal
@@ -158,10 +158,10 @@ public class AccountServiceImpl implements AccountService {
 				}
 			}
 		} else {
-			if (product.getIdProducto() <= 0) {
+			if (product==null) {
 				hashMap.put("Product", "El producto no existe.");
 			}
-			if (customer.getIdCustomer() <= 0) {
+			if (customer==null) {
 				hashMap.put("Customer", "El cliente no existe.");
 			}
 		}
@@ -179,7 +179,7 @@ public class AccountServiceImpl implements AccountService {
 		 * else { return null; }
 		 */
 		Product product = productFeignClient.findById(id);
-		log.info("productFeignClient:" + product.toString());
+		//log.info("productFeignClient:" + product.toString());
 		return product;
 	}
 
@@ -193,23 +193,26 @@ public class AccountServiceImpl implements AccountService {
 		 * HttpStatus.OK) { return response.getBody(); } else { return null; }
 		 */
 		Customer cus = customerFeignClient.customerfindById(id);
-		log.info("customerFeignClient:" + cus.toString());
+		//log.info("customerFeignClient:" + cus.toString());
 		return cus;
 	}
 
 	@Override
 	public Flux<MovementAccount> consultMovementsAccount(Long idBankAccount) {
-		/*
-		 * log.info(movementAccountService + "/" + idAccount); // consulta de
-		 * movimientos de la cuenta ResponseEntity<List<MovementAccount>> response =
-		 * restTemplate.exchange(movementAccountService, HttpMethod.GET, null, new
-		 * ParameterizedTypeReference<List<MovementAccount>>() { });
-		 * List<MovementAccount> list; if (response.getStatusCode() == HttpStatus.OK) {
-		 * list = response.getBody(); return
-		 * Flux.fromIterable(list).filter(movementAccount ->
-		 * movementAccount.getIdAccount() == idAccount); } else { return Flux.empty(); }
+		
+		  //log.info(movementAccountService + "/" + idAccount); // consulta de
+		  //movimientos de la cuenta 
+		 /* ResponseEntity<List<MovementAccount>> response =
+		  restTemplate.exchange(movementAccountService, HttpMethod.GET, null, new
+		  ParameterizedTypeReference<List<MovementAccount>>() { });
+		  List<MovementAccount> list; if (response.getStatusCode() == HttpStatus.OK) {
+		  list = response.getBody(); return
+		  Flux.fromIterable(list).filter(movementAccount ->
+		  movementAccount.getIdAccount() == idAccount); } else { return Flux.empty(); }
 		 */
-		return movementAccountFeignClient.getOneMovementAccount(idBankAccount)
+		log.info("idBankAccount:"+idBankAccount);
+		List<MovementAccount> lista=movementAccountFeignClient.findAll();
+		return Flux.fromIterable(lista)
 				.filter(movementAccount -> movementAccount.getIdBankAccount() == idBankAccount);
 
 	}

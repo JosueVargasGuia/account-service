@@ -102,9 +102,9 @@ public class AccountController {
 	}
 	
 	
-	@GetMapping(value = "/consultMovementsAccount/{idAccount}")
-	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idAccount") Long idAccount) {
-		return service.consultMovementsAccount(idAccount).onErrorResume(e -> {
+	@GetMapping(value = "/consultMovementsAccount/{idBankAccount}")
+	public Flux<MovementAccount> consultMovementsAccount(@PathVariable("idBankAccount") Long idBankAccount) {
+		return service.consultMovementsAccount(idBankAccount).onErrorResume(e -> {
 			log.error("Error:" + e.getMessage());
 			return Mono.error(e);
 		});
