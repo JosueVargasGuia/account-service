@@ -16,10 +16,10 @@ public class CustomerFeignClientFallBack implements CustomerFeignClient {
 	public Customer customerfindById(Long id) {
 		// TODO Auto-generated method stub
 	    //https://arnoldgalovics.com/feign-fallback/
-		  Customer customer = new Customer(); 
-		  customer.setIdCustomer(Long.valueOf(-1));
-		  log.info("CustomerFeignClientFallBack:"+customer.toString());
-		return customer;
+		  //Customer customer = new Customer(); 
+		  //customer.setIdCustomer(Long.valueOf(-1));
+		  log.info("CustomerFeignClientFallBack:"+id);
+		return null;
 
 	}
 

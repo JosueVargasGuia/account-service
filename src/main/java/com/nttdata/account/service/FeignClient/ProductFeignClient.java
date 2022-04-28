@@ -7,11 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import com.nttdata.account.service.FeignClient.FallBackImpl.ProductFeignClientFallBack;
 import com.nttdata.account.service.model.Product;
 
-@FeignClient(name ="${api.product-service.uri}",  
- fallback = ProductFeignClientFallBack.class
-)
+@FeignClient(name = "${api.product-service.uri}", fallback = ProductFeignClientFallBack.class)
 public interface ProductFeignClient {
- 
-	@GetMapping("/{idProducto}") 
-	Product findById(@PathVariable(name="idProducto")Long id);
+
+	@GetMapping("/{idProducto}")
+	Product findById(@PathVariable(name = "idProducto") Long idProducto);
 }
