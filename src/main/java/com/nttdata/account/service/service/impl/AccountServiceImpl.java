@@ -5,23 +5,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
+
+import com.nttdata.account.service.FeignClient.CardFeignClient;
+import com.nttdata.account.service.FeignClient.ConfigurationFeignClient;
+import com.nttdata.account.service.FeignClient.CreditFeignClient;
 import com.nttdata.account.service.FeignClient.CustomerFeignClient;
 import com.nttdata.account.service.FeignClient.MovementAccountFeignClient;
 import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+import com.nttdata.account.service.model.Card;
+import com.nttdata.account.service.model.Configuration;
+import com.nttdata.account.service.model.CreditAccount;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -38,8 +36,6 @@ import reactor.core.publisher.Mono;
 @Log4j2
 public class AccountServiceImpl implements AccountService {
 
-	// Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
-
 	@Autowired
 	private AccountRepository repository;
 
@@ -51,15 +47,12 @@ public class AccountServiceImpl implements AccountService {
 	TableIdFeignClient tableIdFeignClient;
 	@Autowired
 	MovementAccountFeignClient movementAccountFeignClient;
-
 	@Autowired
-	RestTemplate restTemplate;
-
-	// @Value("${api.customer-service.uri}")
-	// private String customerService;
-
-	// @Value("${api.movement-account-service.uri}")
-	// private String movementAccountService;
+	ConfigurationFeignClient configurationfeignClient;
+	@Autowired
+	CardFeignClient cardFeignClient;
+	@Autowired
+	CreditFeignClient creditFeignClient;
 
 	public Flux<BankAccounts> findAll() {
 		return repository.findAll();
@@ -104,14 +97,23 @@ public class AccountServiceImpl implements AccountService {
 	public Mono<Map<String, Object>> registerAccount(BankAccounts bankAccounts) {
 		Map<String, Object> hashMap = new HashMap<String, Object>();
 		Product product = findProduct(bankAccounts.getIdProduct()); // obteniendo producto para luego comparar su tipo
-		Customer customer = findCustomer(bankAccounts.getIdCustomer()); // obteniendo cliente para luego comparar su
-																		// tipo
-
+		Customer customer = findCustomer(bankAccounts.getIdCustomer()); // obteniendo cliente para luego comparar su tipo
+		Configuration configuration = findConfiguration(product.getIdConfiguration());
+		
+		/*
+		 * (var) devuelve 1 - 0 : 
+		 * 		0 indica que hay un cliente del tipo empresarial que puede registrar cuenta Pyme
+		 * 		1 indica que hay cliente del tipo personal que puede registrar cuenta Vip
+		 */
+		Long var = Flux.fromIterable(creditFeignClient.findAll()).filter(e-> e.getIdCustomer() == customer.getIdCustomer())
+			.collect(Collectors.counting()).blockOptional().get();
+		
+		log.info("Variable-->"+var);
+		
 		if (product!=null && customer!=null) {
 			log.info("Customer: " + customer.getFirstname());
 			log.info("Product: " + product.getDescriptionProducto());
-			if (customer.getTypeCustomer() == TypeCustomer.personal
-					&& product.getTypeProduct() == TypeProduct.pasivos) {
+			if (customer.getTypeCustomer() == TypeCustomer.personal &&( product.getTypeProduct() == TypeProduct.pasivos || product.getProductId() == ProductId.Pyme)) {
 
 				Mono<Map<String, Object>> mono = this.findAll()
 						.filter(obj -> (obj.getIdCustomer() == bankAccounts.getIdCustomer()
@@ -121,15 +123,24 @@ public class AccountServiceImpl implements AccountService {
 							if (e_value <= 0) {
 								if (product.getProductId() == ProductId.Savings) {
 									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
-									hashMap.put("Account: ", "Cuenta de Ahorro registrada");
+									hashMap.put("Account_Savings: ", "Cuenta de Ahorro registrada con s/"+ configuration.getCostMaintenance()+ " de comisión por mantenimiento y limite de "+configuration.getQuantityMovement()+" movimientos mensuales");
 								} else if (product.getProductId() == ProductId.CurrentAccount) {
 									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
-									hashMap.put("Account: ", "Cuenta corriente registrada");
+									if(configuration.getQuantityMovement()==null) {
+										hashMap.put("Account_CurrentAccount: ","Cuenta Corriente registrada con s/"+ configuration.getCostMaintenance()+ " de comisión por mantenimiento y sin limite de movimientos mensuales");
+									}	
 								} else if (product.getProductId() == ProductId.FixedTerm) {
 									this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
-									hashMap.put("Account: ", "Cuenta a Plazo fijo registrada");
+									hashMap.put("Account_FixedTerm: ", "Cuenta a Plazo fijo registrada con s/"+ configuration.getCostMaintenance() + " de comisión por mantenimiento con limite de "+ configuration.getQuantityMovement()+ " movimiento al mes los dias "+configuration.getSpecificDate());
+								}else if (product.getProductId() == ProductId.Vip) {
+									if(var>0) { //si es mayor a 0 quiere decir que es cliente tipo personal
+										this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
+										hashMap.put("Account_VIP: ", "Cuenta VIP registrada");
+									}else {
+										hashMap.put("NotFound: ", "No se encontró cuenta válida");
+									}
 								} else {
-									hashMap.put("Account: ", "No se puede registrar una cuenta");
+									hashMap.put("Error_Account: ", "No se puede registrar a una cuenta empresarial");
 								}
 								// Falta realizar validacion cuando no cumple los if
 							} else {
@@ -146,11 +157,17 @@ public class AccountServiceImpl implements AccountService {
 						this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
 						log.info("Cliente Empresarial -> Cuenta corriente registrada.");
 						hashMap.put("Account: ", "Cuenta corriente registrada.");
-					} else {
-						log.info("Cliente Empresarial -> No es posible abrir una cuenta de  "
-								+ product.getDescriptionProducto());
-						hashMap.put("Account: ",
-								"No es posible abrir una cuenta de " + product.getDescriptionProducto());
+					} else if(product.getProductId() == ProductId.Pyme) {
+						if(var==0) {
+							this.save(bankAccounts).subscribe(e -> log.info("Message:" + e.toString()));
+							hashMap.put("Account_Pyme: ", "Cuenta Pyme registrada");
+						}else {
+							hashMap.put("Failed_Account_Pyme: ", "Cuenta Pyme no es posible registrar");
+						}
+					}
+					else {
+						log.info("Cliente Empresarial -> No es posible abrir una cuenta de  "+ product.getDescriptionProducto());
+						hashMap.put("Account: ","No es posible abrir una cuenta de " + product.getDescriptionProducto());
 					}
 				} else {
 					log.info("Este servicio es para el registro de cuentas bancarias.");
@@ -158,12 +175,7 @@ public class AccountServiceImpl implements AccountService {
 				}
 			}
 		} else {
-			if (product==null) {
-				hashMap.put("Product", "El producto no existe.");
-			}
-			if (customer==null) {
-				hashMap.put("Customer", "El cliente no existe.");
-			}
+			hashMap.put("Message", "Datos no encontrados.");
 		}
 		return Mono.just(hashMap);
 	}
@@ -228,5 +240,23 @@ public class AccountServiceImpl implements AccountService {
 		 * Long.valueOf(0); }
 		 */
 		return tableIdFeignClient.generateKey(nameTable);
+	}
+
+	@Override
+	public Configuration findConfiguration(Long idConfiguration) {
+		Configuration configuration = configurationfeignClient.configurationfindById(idConfiguration);
+		return configuration;
+	}
+
+	@Override
+	public Card findCard(Long idCard) {
+		Card card = cardFeignClient.cardfindById(idCard);
+		return card;
+	}
+
+	@Override
+	public CreditAccount findCreditAccount(Long idCreditAccount) {
+		CreditAccount creditAccount = creditFeignClient.creditfindById(idCreditAccount);
+		return creditAccount;
 	}
 }

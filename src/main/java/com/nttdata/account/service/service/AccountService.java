@@ -2,8 +2,10 @@ package com.nttdata.account.service.service;
 
 import java.util.Map;
 
-import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+import com.nttdata.account.service.model.Card;
+import com.nttdata.account.service.model.Configuration;
+import com.nttdata.account.service.model.CreditAccount;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -32,4 +34,10 @@ public interface AccountService {
 	Flux<MovementAccount> consultMovementsAccount(Long idBankAccount);
 
 	Long generateKey(String nameTable);
+	
+	Configuration findConfiguration(Long idConfiguration);
+	
+	Card findCard(Long idCard);
+	
+	CreditAccount findCreditAccount(Long idCreditAccount);
 }
