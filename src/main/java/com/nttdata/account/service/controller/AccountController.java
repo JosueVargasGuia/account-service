@@ -1,7 +1,6 @@
 package com.nttdata.account.service.controller;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,15 +14,17 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 //import com.netflix.discovery.EurekaClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+ 
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
 import com.nttdata.account.service.model.Customer;
+ 
+import com.nttdata.account.service.model.Configuration;
+ 
 import com.nttdata.account.service.model.MovementAccount;
-import com.nttdata.account.service.model.Product;
 import com.nttdata.account.service.service.AccountService;
  
 
@@ -117,4 +118,17 @@ public class AccountController {
 			@PathVariable(name = "idCustomer") Long idCustomer) {
 		return service.findProductByIdCustomer(idCustomer);
 	}
+ 
+ 
+	
+	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Customer findCustomer(@PathVariable("id") Long id) {
+		return service.findCustomer(id);
+	}*/
+	
+	@GetMapping(value = "/findConfiguration/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public Configuration findConfiguration(@PathVariable("id") Long id) {
+		return service.findConfiguration(id);
+	}
+ 
 }
