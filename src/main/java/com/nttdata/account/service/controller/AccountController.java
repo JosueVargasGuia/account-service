@@ -118,9 +118,7 @@ public class AccountController {
 			@PathVariable(name = "idCustomer") Long idCustomer) {
 		return service.findProductByIdCustomer(idCustomer);
 	}
- 
- 
-	
+
 	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Customer findCustomer(@PathVariable("id") Long id) {
 		return service.findCustomer(id);

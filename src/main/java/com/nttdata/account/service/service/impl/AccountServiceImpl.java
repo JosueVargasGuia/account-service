@@ -24,6 +24,14 @@ import com.nttdata.account.service.model.Card;
 import com.nttdata.account.service.model.Configuration;
 import com.nttdata.account.service.model.CreditAccount;
  
+ 
+
+import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
+
+import com.nttdata.account.service.model.Card;
+import com.nttdata.account.service.model.Configuration;
+import com.nttdata.account.service.model.CreditAccount;
+ 
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -279,5 +287,4 @@ public class AccountServiceImpl implements AccountService {
 		CreditAccount creditAccount = creditFeignClient.creditfindById(idCreditAccount);
 		return creditAccount;
  
-	}
 }
