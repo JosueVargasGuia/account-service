@@ -17,9 +17,18 @@ import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+<<<<<<< HEAD
  
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
  
+import com.nttdata.account.service.model.Card;
+import com.nttdata.account.service.model.Configuration;
+import com.nttdata.account.service.model.CreditAccount;
+ 
+ 
+
+import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
+
 import com.nttdata.account.service.model.Card;
 import com.nttdata.account.service.model.Configuration;
 import com.nttdata.account.service.model.CreditAccount;
@@ -249,7 +258,7 @@ public class AccountServiceImpl implements AccountService {
 	}
 
 	@Override
-<<<<<<< HEAD
+ 
 	public Flux<ConsolidatedCustomerProducts> findProductByIdCustomer(Long idCustomer) {
 		// TODO Auto-generated method stub
 		return 	  this.findAll().filter(e->e.getIdCustomer()==idCustomer)
@@ -262,7 +271,7 @@ public class AccountServiceImpl implements AccountService {
 					 objT.setIdCustomer(idCustomer);
 					 return objT;
 				 });
-=======
+ 
 	public Configuration findConfiguration(Long idConfiguration) {
 		Configuration configuration = configurationfeignClient.configurationfindById(idConfiguration);
 		return configuration;
@@ -278,6 +287,5 @@ public class AccountServiceImpl implements AccountService {
 	public CreditAccount findCreditAccount(Long idCreditAccount) {
 		CreditAccount creditAccount = creditFeignClient.creditfindById(idCreditAccount);
 		return creditAccount;
->>>>>>> main
-	}
+ 
 }
