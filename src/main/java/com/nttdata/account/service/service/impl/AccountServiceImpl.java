@@ -270,7 +270,7 @@ public class AccountServiceImpl implements AccountService {
 					 objT.setIdCustomer(idCustomer);
 					 return objT;
 				 });
- 
+	}
 	public Configuration findConfiguration(Long idConfiguration) {
 		Configuration configuration = configurationfeignClient.configurationfindById(idConfiguration);
 		return configuration;
@@ -286,5 +286,5 @@ public class AccountServiceImpl implements AccountService {
 	public CreditAccount findCreditAccount(Long idCreditAccount) {
 		CreditAccount creditAccount = creditFeignClient.creditfindById(idCreditAccount);
 		return creditAccount;
- 
+	}
 }
