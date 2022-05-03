@@ -22,14 +22,17 @@ import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
 import com.nttdata.account.service.model.ProductId;
+import com.nttdata.account.service.model.TypeAccount;
 import com.nttdata.account.service.model.TypeCustomer;
 import com.nttdata.account.service.model.TypeProduct;
 import com.nttdata.account.service.repository.AccountRepository;
-import com.nttdata.account.service.service.AccountService;
+import com.nttdata.account.service.service.AccountService; 
+
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -228,5 +231,20 @@ public class AccountServiceImpl implements AccountService {
 		 * Long.valueOf(0); }
 		 */
 		return tableIdFeignClient.generateKey(nameTable);
+	}
+
+	@Override
+	public Flux<ConsolidatedCustomerProducts> findProductByIdCustomer(Long idCustomer) {
+		// TODO Auto-generated method stub
+		return 	  this.findAll().filter(e->e.getIdCustomer()==idCustomer)
+				 .map(obj->{
+					 ConsolidatedCustomerProducts objT=new ConsolidatedCustomerProducts();
+					 objT.setProduct(productFeignClient.findById(obj.getIdProduct()));
+					 objT.setTypeAccount(TypeAccount.BankAccounts);
+					 objT.setIdAccount(obj.getIdCustomer());
+					 objT.setIdBankAccount(obj.getIdBankAccount());
+					 objT.setIdCustomer(idCustomer);
+					 return objT;
+				 });
 	}
 }

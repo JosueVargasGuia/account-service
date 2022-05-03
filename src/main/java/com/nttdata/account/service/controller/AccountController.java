@@ -20,10 +20,12 @@ import org.springframework.web.server.ResponseStatusException;
 //import com.netflix.discovery.EurekaClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
 import com.nttdata.account.service.service.AccountService;
+ 
 
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
@@ -110,14 +112,9 @@ public class AccountController {
 		});
 	}
 	
-	
-	/*@GetMapping(value = "/findProduct/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Product find(@PathVariable("id") Long id) {
-		return service.findProduct(id);
+	@GetMapping("/findProductByIdCustomer/{idCustomer}")
+	public Flux<ConsolidatedCustomerProducts> findProductByIdCustomer(
+			@PathVariable(name = "idCustomer") Long idCustomer) {
+		return service.findProductByIdCustomer(idCustomer);
 	}
-	
-	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Customer findCustomer(@PathVariable("id") Long id) {
-		return service.findCustomer(id);
-	}*/
 }
