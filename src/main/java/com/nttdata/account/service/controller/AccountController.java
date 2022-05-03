@@ -122,7 +122,7 @@ public class AccountController {
 	@GetMapping(value = "/findCustomer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Customer findCustomer(@PathVariable("id") Long id) {
 		return service.findCustomer(id);
-	}*/
+	} 
 	
 	@GetMapping(value = "/findConfiguration/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Configuration findConfiguration(@PathVariable("id") Long id) {
