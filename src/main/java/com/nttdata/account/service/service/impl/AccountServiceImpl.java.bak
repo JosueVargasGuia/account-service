@@ -17,6 +17,7 @@ import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
+<<<<<<< HEAD
  
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
  
