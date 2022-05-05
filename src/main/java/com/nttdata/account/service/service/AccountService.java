@@ -3,19 +3,10 @@ package com.nttdata.account.service.service;
 import java.util.Map;
 
 import com.nttdata.account.service.entity.BankAccounts;
-
-import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
-
 import com.nttdata.account.service.model.Card;
 import com.nttdata.account.service.model.Configuration;
-import com.nttdata.account.service.model.CreditAccount;
-
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
-
-import com.nttdata.account.service.model.Card;
-import com.nttdata.account.service.model.Configuration;
 import com.nttdata.account.service.model.CreditAccount;
-
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -52,5 +43,9 @@ public interface AccountService {
 	Card findCard(Long idCard);
 
 	CreditAccount findCreditAccount(Long idCreditAccount);
+	
+	Flux<BankAccounts> findAllByAccount(Long idAccount);
+	
+	Mono<BankAccounts> findByIdForExample(BankAccounts bankAccounts);
 
 }
