@@ -3,7 +3,7 @@ package com.nttdata.account.service.model;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
+ 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,13 +19,16 @@ import lombok.Setter;
 @Data
 public class Card {
 	private Long idCard;
-	private Long IdHolderAccount;
-	private Long idAccount;
-	private Long idSignCustAccount;
+	//private Long idHolderAccount;
+	//private Long idAccount;
+	//private Long idCustomer;
+	//private Long idSignCustAccount;
 	private String cardNumber;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private Date expirationDate;
 	private String cvv;
+	private CardType cardType;
+	
 	private String password;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss") 
 	private Date creationDate;
