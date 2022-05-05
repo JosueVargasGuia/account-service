@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import com.nttdata.account.service.FeignClient.CardFeignClient;
@@ -17,21 +19,10 @@ import com.nttdata.account.service.FeignClient.ProductFeignClient;
 import com.nttdata.account.service.FeignClient.TableIdFeignClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
- 
-import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
- 
 import com.nttdata.account.service.model.Card;
 import com.nttdata.account.service.model.Configuration;
-import com.nttdata.account.service.model.CreditAccount;
- 
- 
-
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
-
-import com.nttdata.account.service.model.Card;
-import com.nttdata.account.service.model.Configuration;
 import com.nttdata.account.service.model.CreditAccount;
- 
 import com.nttdata.account.service.model.Customer;
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.model.Product;
@@ -40,7 +31,7 @@ import com.nttdata.account.service.model.TypeAccount;
 import com.nttdata.account.service.model.TypeCustomer;
 import com.nttdata.account.service.model.TypeProduct;
 import com.nttdata.account.service.repository.AccountRepository;
-import com.nttdata.account.service.service.AccountService; 
+import com.nttdata.account.service.service.AccountService;
 
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
@@ -286,5 +277,17 @@ public class AccountServiceImpl implements AccountService {
 	public CreditAccount findCreditAccount(Long idCreditAccount) {
 		CreditAccount creditAccount = creditFeignClient.creditfindById(idCreditAccount);
 		return creditAccount;
+	}
+
+	@Override
+	public Flux<BankAccounts> findAllByAccount(Long idAccount) {
+		// TODO Auto-generated method stub
+		return repository.findAll().filter(account->account.getIdAccount()==idAccount);
+	}
+
+	@Override
+	public Mono<BankAccounts> findByIdForExample(BankAccounts bankAccounts) {
+		Example<BankAccounts> example = Example.of(bankAccounts); 		
+		return repository.findOne(example);
 	}
 }

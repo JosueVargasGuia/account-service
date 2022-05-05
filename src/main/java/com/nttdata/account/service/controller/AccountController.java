@@ -18,15 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 //import com.netflix.discovery.EurekaClient;
 import com.nttdata.account.service.entity.Account;
 import com.nttdata.account.service.entity.BankAccounts;
- 
+import com.nttdata.account.service.model.Configuration;
 import com.nttdata.account.service.model.ConsolidatedCustomerProducts;
 import com.nttdata.account.service.model.Customer;
- 
-import com.nttdata.account.service.model.Configuration;
- 
 import com.nttdata.account.service.model.MovementAccount;
 import com.nttdata.account.service.service.AccountService;
- 
 
 import lombok.extern.log4j.Log4j2;
 import reactor.core.publisher.Flux;
@@ -127,6 +123,17 @@ public class AccountController {
 	@GetMapping(value = "/findConfiguration/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public Configuration findConfiguration(@PathVariable("id") Long id) {
 		return service.findConfiguration(id);
+	}
+	
+	@GetMapping(value="/findAllByAccount/{idAccount}",produces = MediaType.APPLICATION_JSON_VALUE)
+	public Flux<BankAccounts> findAllByAccount(@PathVariable("idAccount") Long idAccount){
+		return service.findAllByAccount(idAccount);
+
+	}
+	
+	@PostMapping("/findByIdForExample")
+	public Mono<BankAccounts> findByIdForExample(@RequestBody BankAccounts bankAccounts){
+		return service.findByIdForExample(bankAccounts);
 	}
  
 }
